@@ -17,7 +17,8 @@ BASE = 10**18
 
 
 def main():
-    token_days = defaultdict(float)
+    total_time = 0
+    fraction_days = defaultdict(float)
     mc = Contract("0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696")
     factory = Contract("0x370a449FeBb9411c95bf897021377fe0B7D100c0")
     lts = [Contract(factory.markets(i)[3]) for i in range(3)]
@@ -29,6 +30,8 @@ def main():
     gauge_balances = defaultdict(dict)
 
     for block in range(START, END - (SIZE - 1), SIZE):
+        tokens = defaultdict(float)
+
         for i in range(3):
             for contract in [lts[i], gauges[i]]:
                 transfers = contract.events.Transfer.get_logs(fromBlock=block, toBlock=block+SIZE-1)
@@ -45,6 +48,7 @@ def main():
 
         dt = time - t0
         t0 = time
+        total_time += dt
         print(datetime.fromtimestamp(t0))
 
         for i in range(3):
@@ -56,13 +60,30 @@ def main():
 
         for i in range(3):
             for u, balance in lt_balances[i].items():
-                token_days[u] += balance * dt / (86400 * BASE)
+                tokens[u] += balance / BASE
 
         for i in range(3):
             for u, gbalance in gauge_balances[i].items():
-                token_days[u] += gbalance * (redemption_rates[i] / BASE) * dt / (86400 * BASE)
+                tokens[u] += gbalance * (redemption_rates[i] / BASE) / BASE
+
+        total_tokens = sum(tokens.values())
+
+        for u, balance in tokens.items():
+            fraction_days[u] += balance * dt / 86400 / total_tokens
 
         print("    ", [len(lb) for lb in lt_balances.values()], [len(gb) for gb in gauge_balances.values()])
         print("    ", redemption_rates)
+        print("    ", sum(tokens.values()))
 
-    pprint(token_days)
+    pprint(fraction_days)
+    print(sum(fraction_days.values()), total_time / 86400)
+
+    # Normalize
+    f_sum = sum(fraction_days.values())
+    for u in fraction_days.keys():
+        fraction_days[u] /= f_sum
+
+    print(sum(fraction_days.values()))
+
+    with open("split.json", "w") as f:
+        json.dump(fraction_days, f)
