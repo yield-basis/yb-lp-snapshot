@@ -11,7 +11,7 @@ from pprint import pprint
 config['autofetch_sources'] = True
 
 START = 23434000
-END = START + 10000  # XXX test only
+END = START + 10000  # XXX test only  23568418
 SIZE = 500
 BASE = 10**18
 
@@ -54,9 +54,15 @@ def main():
                     del gauge_balances[i][u]
                     users_to_check[i].remove(u)
 
-        # for u, state in user_states.items():
-        #     token_days[u] += state[0] * dt / (86400 * BASE)
+        for i in range(3):
+            for u, balance in lt_balances[i].items():
+                token_days[u] += balance * dt / (86400 * BASE)
 
-        print([len(lb) for lb in lt_balances.values()], [len(gb) for gb in gauge_balances.values()])
+        for i in range(3):
+            for u, gbalance in gauge_balances[i].items():
+                token_days[u] += gbalance * (redemption_rates[i] / BASE) * dt / (86400 * BASE)
+
+        print("    ", [len(lb) for lb in lt_balances.values()], [len(gb) for gb in gauge_balances.values()])
+        print("    ", redemption_rates)
 
     pprint(token_days)
