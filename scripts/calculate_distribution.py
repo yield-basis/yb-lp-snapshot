@@ -24,6 +24,7 @@ def main():
     factory = Contract("0x370a449FeBb9411c95bf897021377fe0B7D100c0")
     lts = [Contract(factory.markets(i)[3]) for i in range(3)]
     gauges = [Contract(factory.markets(i)[-1]) for i in range(3)]
+    gauge_addrs = set([g.address for g in gauges])
 
     t0 = web3.eth.get_block(START - 1).timestamp
     users_to_check = [set(), set(), set()]
@@ -36,8 +37,8 @@ def main():
         for i in range(3):
             for contract in [lts[i], gauges[i]]:
                 transfers = contract.events.Transfer.get_logs(fromBlock=block, toBlock=block+SIZE-1)
-                users_to_check[i].update(ev.args.sender for ev in transfers)
-                users_to_check[i].update(ev.args.receiver for ev in transfers)
+                users_to_check[i].update(ev.args.sender for ev in transfers if ev.args.sender not in gauge_addrs)
+                users_to_check[i].update(ev.args.receiver for ev in transfers if ev.args.sender not in gauge_addrs)
 
         with multicall(address=mc.address, block_identifier=block+SIZE-1):
             for i in range(3):
