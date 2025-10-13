@@ -71,11 +71,11 @@ def main():
         for u, balance in tokens.items():
             fraction_days[u] += balance * dt / 86400 / total_tokens
 
-        print("    ", [len(lb) for lb in lt_balances.values()], [len(gb) for gb in gauge_balances.values()])
+        print("    ", [(len(lb), sum(lb.values()) / BASE) for lb in lt_balances.values()], [(len(gb), sum(gb.values())/ BASE) for gb in gauge_balances.values()])
         print("    ", redemption_rates)
         print("    ", sum(tokens.values()))
 
-    pprint(fraction_days)
+    # pprint(fraction_days)
     print(sum(fraction_days.values()), total_time / 86400)
 
     # Normalize
