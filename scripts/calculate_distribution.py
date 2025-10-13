@@ -11,7 +11,8 @@ from pprint import pprint
 config['autofetch_sources'] = True
 
 START = 23434000
-END = START + 10000  # XXX test only  23568418
+# END = START + 10000  # XXX test only  23568418
+END = 23568418  # XXX test only  23568418
 SIZE = 500
 BASE = 10**18
 
