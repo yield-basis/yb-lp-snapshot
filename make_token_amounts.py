@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import json
 
-FRACTIONS_FILE = "split-example.json"
+FRACTIONS_FILE = "split.json"
 NONVESTED_OUTPUT = "split-nonvested.json"
 VESTED_OUTPUT = "split-vested.json"
 TOTAL = 11_250_000 * 10**18 // 2  # Season 1
