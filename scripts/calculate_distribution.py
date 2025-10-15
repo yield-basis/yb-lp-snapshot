@@ -27,7 +27,9 @@ def main():
     print(gauge_addrs)
 
     t0 = web3.eth.get_block(START - 1).timestamp
-    users_to_check = [set(), set(), set()]
+    with open('all_users.json', 'r') as f:
+        data = json.load(f)
+        users_to_check = [set(data[0]), set(data[1]), set(data[2])]
     lt_balances = defaultdict(dict)
     gauge_balances = defaultdict(dict)
 
@@ -37,8 +39,8 @@ def main():
         for i in range(3):
             for contract in [lts[i], gauges[i]]:
                 transfers = contract.events.Transfer.get_logs(fromBlock=block, toBlock=block+SIZE-1)
-                users_to_check[i].update(ev.args.sender for ev in transfers if ev.args.sender not in gauge_addrs)
-                users_to_check[i].update(ev.args.receiver for ev in transfers if ev.args.receiver not in gauge_addrs)
+                users_to_check[i].update(str(ev.args.sender) for ev in transfers if ev.args.sender not in gauge_addrs)
+                users_to_check[i].update(str(ev.args.receiver) for ev in transfers if ev.args.receiver not in gauge_addrs)
 
         with multicall(address=mc.address, block_identifier=block+SIZE-1):
             for i in range(3):
@@ -58,7 +60,7 @@ def main():
                 if lt_balances[i][u] == 0 and gauge_balances[i][u] == 0:
                     del lt_balances[i][u]
                     del gauge_balances[i][u]
-                    users_to_check[i].remove(u)
+                    # users_to_check[i].remove(u) <- NOT doing it because node can be faulty and not get it back
 
         for i in range(3):
             for u, balance in lt_balances[i].items():
